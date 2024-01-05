@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use serde::Serialize;
 
+use super::device::Device;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VersionResponse {
     pub id: u32,
@@ -27,40 +29,6 @@ pub struct GetSupportedPlatformsResult {
 pub struct GetDevicesResponse {
     pub id: u32,
     pub result: Vec<Device>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DeviceCapabilities {
-    #[serde(rename = "hotReload")]
-    pub hot_reload: bool,
-    #[serde(rename = "hotRestart")]
-    pub hot_restart: bool,
-    #[serde(rename = "screenshot")]
-    pub screenshot: bool,
-    #[serde(rename = "fastStart")]
-    pub fast_start: bool,
-    #[serde(rename = "flutterExit")]
-    pub flutter_exit: bool,
-    #[serde(rename = "hardwareRendering")]
-    pub hardware_rendering: bool,
-    #[serde(rename = "startPaused")]
-    pub start_paused: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Device {
-    pub id: String,
-    pub name: String,
-    pub platform: String,
-    pub emulator: bool,
-    pub category: String,
-    #[serde(rename = "platformType")]
-    pub platform_type: String,
-    pub ephemeral: bool,
-    #[serde(rename = "emulatorId")]
-    pub emulator_id: String,
-    pub sdk: String,
-    pub capabilities: DeviceCapabilities,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -146,6 +114,8 @@ pub struct DetachAppResponse {
 
 #[cfg(test)]
 mod test {
+    use crate::daemon::device::DeviceCapabilities;
+
     use super::*;
 
     #[test]
@@ -207,7 +177,7 @@ mod test {
                     category: "mobile".to_string(),
                     platform_type: "desktop".to_string(),
                     ephemeral: false,
-                    emulator_id: "linux".to_string(),
+                    emulator_id: Some("linux".to_string()),
                     sdk: "Flutter (Channel stable, 2.0.3, on Linux, locale en_US.UTF-8)"
                         .to_string(),
                     capabilities: DeviceCapabilities {
