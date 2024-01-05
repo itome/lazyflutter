@@ -1,79 +1,19 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use super::device::Device;
+use super::device::{Device, DeviceCapabilities};
+use super::emulator::Emulator;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct VersionResponse {
+pub struct FlutterDaemonResponse<R> {
     pub id: u32,
-    pub result: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ShutdownResponse {
-    pub id: u32,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct GetSupportedPlatformsResponse {
-    pub id: u32,
-    pub result: GetSupportedPlatformsResult,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub result: Option<R>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GetSupportedPlatformsResult {
     pub platforms: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct GetDevicesResponse {
-    pub id: u32,
-    pub result: Vec<Device>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DeviceEnableResponse {
-    pub id: u32,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DeviceDisableResponse {
-    pub id: u32,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DeviceForwardResponse {
-    pub id: u32,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DeviceUnforwardResponse {
-    pub id: u32,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Emulator {
-    pub id: String,
-    pub name: String,
-    pub category: String,
-    #[serde(rename = "platformType")]
-    pub platform_type: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct GetEmulatorsResponse {
-    pub id: u32,
-    pub result: Vec<Emulator>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct EmulatorLaunchResponse {
-    pub id: u32,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct EmulatorCreateResponse {
-    pub id: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -83,39 +23,43 @@ pub struct ServeDevToolsResult {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ServeDevToolsResponse {
-    pub id: u32,
-    pub result: ServeDevToolsResult,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RestartAppResult {
     pub code: u32,
     pub message: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RestartAppResponse {
-    pub id: u32,
-    pub result: RestartAppResult,
-}
+pub type VersionResponse = FlutterDaemonResponse<String>;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct StopAppResponse {
-    pub id: u32,
-    pub result: bool,
-}
+pub type ShutdownResponse = FlutterDaemonResponse<()>;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DetachAppResponse {
-    pub id: u32,
-    pub result: bool,
-}
+pub type GetSupportedPlatformsResponse = FlutterDaemonResponse<GetSupportedPlatformsResult>;
+
+pub type GetDevicesResponse = FlutterDaemonResponse<Vec<Device>>;
+
+pub type DeviceEnableResponse = FlutterDaemonResponse<()>;
+
+pub type DeviceDisableResponse = FlutterDaemonResponse<()>;
+
+pub type DeviceForwardResponse = FlutterDaemonResponse<()>;
+
+pub type DeviceUnforwardResponse = FlutterDaemonResponse<()>;
+
+pub type GetEmulatorsResponse = FlutterDaemonResponse<Vec<Emulator>>;
+
+pub type EmulatorLaunchResponse = FlutterDaemonResponse<()>;
+
+pub type EmulatorCreateResponse = FlutterDaemonResponse<()>;
+
+pub type ServeDevToolsResponse = FlutterDaemonResponse<ServeDevToolsResult>;
+
+pub type RestartAppResponse = FlutterDaemonResponse<RestartAppResult>;
+
+pub type StopAppResponse = FlutterDaemonResponse<bool>;
+
+pub type DetachAppResponse = FlutterDaemonResponse<bool>;
 
 #[cfg(test)]
 mod test {
-    use crate::daemon::device::DeviceCapabilities;
-
     use super::*;
 
     #[test]
@@ -126,7 +70,7 @@ mod test {
             response,
             VersionResponse {
                 id: 1,
-                result: "0.6.1".to_string(),
+                result: Some("0.6.1".to_string()),
             }
         );
     }
@@ -135,7 +79,13 @@ mod test {
     fn shutdown_response() {
         let json = r#"{"id": 1}"#;
         let response: ShutdownResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response, ShutdownResponse { id: 1 });
+        assert_eq!(
+            response,
+            ShutdownResponse {
+                id: 1,
+                result: None
+            }
+        );
     }
 
     #[test]
@@ -147,7 +97,7 @@ mod test {
             response,
             GetSupportedPlatformsResponse {
                 id: 1,
-                result: GetSupportedPlatformsResult {
+                result: Some(GetSupportedPlatformsResult {
                     platforms: vec![
                         "linux".to_string(),
                         "macos".to_string(),
@@ -156,7 +106,7 @@ mod test {
                         "android".to_string(),
                         "web".to_string(),
                     ],
-                },
+                }),
             }
         );
     }
@@ -169,7 +119,7 @@ mod test {
             response,
             GetDevicesResponse {
                 id: 1,
-                result: vec![Device {
+                result: Some(vec![Device {
                     id: "linux".to_string(),
                     name: "Linux".to_string(),
                     platform: "linux".to_string(),
@@ -189,7 +139,7 @@ mod test {
                         hardware_rendering: true,
                         start_paused: false,
                     },
-                }],
+                }]),
             }
         );
     }
@@ -198,28 +148,52 @@ mod test {
     fn device_enable_response() {
         let json = r#"{"id":1}"#;
         let response: DeviceEnableResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response, DeviceEnableResponse { id: 1 });
+        assert_eq!(
+            response,
+            DeviceEnableResponse {
+                id: 1,
+                result: None
+            }
+        );
     }
 
     #[test]
     fn device_disable_response() {
         let json = r#"{"id":1}"#;
         let response: DeviceDisableResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response, DeviceDisableResponse { id: 1 });
+        assert_eq!(
+            response,
+            DeviceDisableResponse {
+                id: 1,
+                result: None
+            }
+        );
     }
 
     #[test]
     fn device_forward_response() {
         let json = r#"{"id":1}"#;
         let response: DeviceForwardResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response, DeviceForwardResponse { id: 1 });
+        assert_eq!(
+            response,
+            DeviceForwardResponse {
+                id: 1,
+                result: None
+            }
+        );
     }
 
     #[test]
     fn device_unforward_response() {
         let json = r#"{"id":1}"#;
         let response: DeviceUnforwardResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response, DeviceUnforwardResponse { id: 1 });
+        assert_eq!(
+            response,
+            DeviceUnforwardResponse {
+                id: 1,
+                result: None
+            }
+        );
     }
 
     #[test]
@@ -230,12 +204,12 @@ mod test {
             response,
             GetEmulatorsResponse {
                 id: 1,
-                result: vec![Emulator {
+                result: Some(vec![Emulator {
                     id: "android".to_string(),
                     name: "Android SDK built for x86".to_string(),
                     category: "mobile".to_string(),
                     platform_type: "android".to_string(),
-                }],
+                }]),
             }
         );
     }
@@ -244,14 +218,26 @@ mod test {
     fn emulator_launch_response() {
         let json = r#"{"id":1}"#;
         let response: EmulatorLaunchResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response, EmulatorLaunchResponse { id: 1 });
+        assert_eq!(
+            response,
+            EmulatorLaunchResponse {
+                id: 1,
+                result: None
+            }
+        );
     }
 
     #[test]
     fn emulator_create_response() {
         let json = r#"{"id":1}"#;
         let response: EmulatorCreateResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(response, EmulatorCreateResponse { id: 1 });
+        assert_eq!(
+            response,
+            EmulatorCreateResponse {
+                id: 1,
+                result: None
+            }
+        );
     }
 
     #[test]
@@ -262,10 +248,10 @@ mod test {
             response,
             ServeDevToolsResponse {
                 id: 1,
-                result: ServeDevToolsResult {
+                result: Some(ServeDevToolsResult {
                     host: Some("somehost".to_string()),
                     port: Some("1234".to_string())
-                }
+                })
             }
         )
     }
@@ -278,10 +264,10 @@ mod test {
             response,
             RestartAppResponse {
                 id: 1,
-                result: RestartAppResult {
+                result: Some(RestartAppResult {
                     code: 0,
                     message: "Success".to_string(),
-                }
+                })
             }
         )
     }
@@ -294,7 +280,7 @@ mod test {
             response,
             StopAppResponse {
                 id: 1,
-                result: true
+                result: Some(true)
             }
         )
     }
@@ -307,7 +293,7 @@ mod test {
             response,
             DetachAppResponse {
                 id: 1,
-                result: true
+                result: Some(true)
             }
         )
     }
