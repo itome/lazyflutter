@@ -21,6 +21,7 @@ struct LaunchEmulatorParams {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 struct CreateEmultorParams {
     #[serde(rename = "name")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     name: Option<String>,
 }
 
@@ -34,8 +35,10 @@ struct RestartAppParams {
 
     pause: bool,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     reason: Option<String>,
 
+    #[serde(skip_serializing_if = "Option::is_none")]
     debounce: Option<String>,
 }
 
@@ -60,7 +63,33 @@ struct CallServiceExtensionParams {
     method_name: String,
 
     #[serde(rename = "params")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     params: Option<Map<String, Value>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+struct DeviceForwardParams {
+    #[serde(rename = "deviceId")]
+    device_id: String,
+
+    #[serde(rename = "port")]
+    port: String,
+
+    #[serde(rename = "hostPort")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    host_port: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+struct DeviceUnforwardParams {
+    #[serde(rename = "deviceId")]
+    device_id: String,
+
+    #[serde(rename = "port")]
+    port: String,
+
+    #[serde(rename = "hostPort")]
+    host_port: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -88,10 +117,19 @@ enum FlutterDaemonRequest {
     DeviceDisable { id: u32 },
 
     #[serde(rename = "device.forward")]
-    DeviceForward { id: u32 },
+    DeviceForward {
+        id: u32,
+        params: DeviceForwardParams,
+    },
 
     #[serde(rename = "device.unforward")]
-    DeviceUnforward { id: u32 },
+    DeviceUnforward {
+        id: u32,
+        params: DeviceUnforwardParams,
+    },
+
+    #[serde(rename = "emulator.getEmulators")]
+    GetEmulators { id: u32 },
 
     #[serde(rename = "emulator.launch")]
     LaunchEmulator {
@@ -106,7 +144,7 @@ enum FlutterDaemonRequest {
     },
 
     #[serde(rename = "devtools.serve")]
-    DevtoolsServe { id: u32 },
+    ServeDevtools { id: u32 },
 
     #[serde(rename = "app.restart")]
     RestartApp { id: u32, params: RestartAppParams },
@@ -180,16 +218,57 @@ mod tests {
 
     #[test]
     fn device_forward() {
-        let method = FlutterDaemonRequest::DeviceForward { id: 1 };
+        let method = FlutterDaemonRequest::DeviceForward {
+            id: 1,
+            params: super::DeviceForwardParams {
+                device_id: String::from("emulator-5554"),
+                port: String::from("8080"),
+                host_port: None,
+            },
+        };
         let serialized = serde_json::to_string(&method).unwrap();
-        assert_eq!(serialized, r#"{"method":"device.forward","id":1}"#);
+        assert_eq!(
+            serialized,
+            r#"{"method":"device.forward","id":1,"params":{"deviceId":"emulator-5554","port":"8080"}}"#
+        );
+
+        let method = FlutterDaemonRequest::DeviceForward {
+            id: 1,
+            params: super::DeviceForwardParams {
+                device_id: String::from("emulator-5554"),
+                port: String::from("8080"),
+                host_port: Some(String::from("8081")),
+            },
+        };
+        let serialized = serde_json::to_string(&method).unwrap();
+        assert_eq!(
+            serialized,
+            r#"{"method":"device.forward","id":1,"params":{"deviceId":"emulator-5554","port":"8080","hostPort":"8081"}}"#
+        );
     }
 
     #[test]
     fn device_unforward() {
-        let method = FlutterDaemonRequest::DeviceUnforward { id: 1 };
+        let method = FlutterDaemonRequest::DeviceUnforward {
+            id: 1,
+            params: super::DeviceUnforwardParams {
+                device_id: String::from("emulator-5554"),
+                port: String::from("8080"),
+                host_port: String::from("8081"),
+            },
+        };
         let serialized = serde_json::to_string(&method).unwrap();
-        assert_eq!(serialized, r#"{"method":"device.unforward","id":1}"#);
+        assert_eq!(
+            serialized,
+            r#"{"method":"device.unforward","id":1,"params":{"deviceId":"emulator-5554","port":"8080","hostPort":"8081"}}"#
+        );
+    }
+
+    #[test]
+    fn emulator_get_emulators() {
+        let method = FlutterDaemonRequest::GetEmulators { id: 1 };
+        let serialized = serde_json::to_string(&method).unwrap();
+        assert_eq!(serialized, r#"{"method":"emulator.getEmulators","id":1}"#);
     }
 
     #[test]
@@ -217,7 +296,7 @@ mod tests {
         let serialized = serde_json::to_string(&method).unwrap();
         assert_eq!(
             serialized,
-            r#"{"method":"emulator.create","id":1,"params":{"name":null}}"#
+            r#"{"method":"emulator.create","id":1,"params":{}}"#
         );
 
         let method = FlutterDaemonRequest::CreateEmulator {
@@ -235,7 +314,7 @@ mod tests {
 
     #[test]
     fn devtools_serve() {
-        let method = FlutterDaemonRequest::DevtoolsServe { id: 1 };
+        let method = FlutterDaemonRequest::ServeDevtools { id: 1 };
         let serialized = serde_json::to_string(&method).unwrap();
         assert_eq!(serialized, r#"{"method":"devtools.serve","id":1}"#);
     }
@@ -255,7 +334,7 @@ mod tests {
         let serialized = serde_json::to_string(&method).unwrap();
         assert_eq!(
             serialized,
-            r#"{"method":"app.restart","id":1,"params":{"appId":"com.example.app","fullRestart":false,"pause":false,"reason":null,"debounce":null}}"#
+            r#"{"method":"app.restart","id":1,"params":{"appId":"com.example.app","fullRestart":false,"pause":false}}"#
         );
     }
 
@@ -302,7 +381,7 @@ mod tests {
         let serialized = serde_json::to_string(&method).unwrap();
         assert_eq!(
             serialized,
-            r#"{"method":"app.callServiceExtension","id":1,"params":{"appId":"com.example.app","methodName":"ext.flutter.debugPaint","params":null}}"#
+            r#"{"method":"app.callServiceExtension","id":1,"params":{"appId":"com.example.app","methodName":"ext.flutter.debugPaint"}}"#
         );
 
         let method = FlutterDaemonRequest::CallServiceExtension {
