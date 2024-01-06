@@ -73,11 +73,11 @@ pub struct DeviceForwardParams {
     pub device_id: String,
 
     #[serde(rename = "port")]
-    pub port: String,
+    pub port: u32,
 
     #[serde(rename = "hostPort")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub host_port: Option<String>,
+    pub host_port: Option<u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -86,10 +86,10 @@ pub struct DeviceUnforwardParams {
     pub device_id: String,
 
     #[serde(rename = "port")]
-    pub port: String,
+    pub port: u32,
 
     #[serde(rename = "hostPort")]
-    pub host_port: String,
+    pub host_port: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -222,28 +222,28 @@ mod tests {
             id: 1,
             params: super::DeviceForwardParams {
                 device_id: String::from("emulator-5554"),
-                port: String::from("8080"),
+                port: 8080,
                 host_port: None,
             },
         };
         let serialized = serde_json::to_string(&method).unwrap();
         assert_eq!(
             serialized,
-            r#"{"method":"device.forward","id":1,"params":{"deviceId":"emulator-5554","port":"8080"}}"#
+            r#"{"method":"device.forward","id":1,"params":{"deviceId":"emulator-5554","port":8080}}"#
         );
 
         let method = FlutterDaemonRequest::DeviceForward {
             id: 1,
             params: super::DeviceForwardParams {
                 device_id: String::from("emulator-5554"),
-                port: String::from("8080"),
-                host_port: Some(String::from("8081")),
+                port: 8080,
+                host_port: Some(8081),
             },
         };
         let serialized = serde_json::to_string(&method).unwrap();
         assert_eq!(
             serialized,
-            r#"{"method":"device.forward","id":1,"params":{"deviceId":"emulator-5554","port":"8080","hostPort":"8081"}}"#
+            r#"{"method":"device.forward","id":1,"params":{"deviceId":"emulator-5554","port":8080,"hostPort":8081}}"#
         );
     }
 
@@ -253,14 +253,14 @@ mod tests {
             id: 1,
             params: super::DeviceUnforwardParams {
                 device_id: String::from("emulator-5554"),
-                port: String::from("8080"),
-                host_port: String::from("8081"),
+                port: 8080,
+                host_port: 8081,
             },
         };
         let serialized = serde_json::to_string(&method).unwrap();
         assert_eq!(
             serialized,
-            r#"{"method":"device.unforward","id":1,"params":{"deviceId":"emulator-5554","port":"8080","hostPort":"8081"}}"#
+            r#"{"method":"device.unforward","id":1,"params":{"deviceId":"emulator-5554","port":8080,"hostPort":8081}}"#
         );
     }
 

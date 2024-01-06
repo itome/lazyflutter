@@ -17,6 +17,8 @@ pub struct LogEventParams {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum MessageLevel {
+    #[serde(rename = "status")]
+    Status,
     #[serde(rename = "info")]
     Info,
     #[serde(rename = "warning")]
@@ -27,18 +29,18 @@ pub enum MessageLevel {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ShowMessageEventParams {
-    level: MessageLevel,
-    title: String,
-    message: String,
+    pub level: MessageLevel,
+    pub title: String,
+    pub message: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct LogMessageEventParams {
-    level: MessageLevel,
-    message: String,
+    pub level: MessageLevel,
+    pub message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "stackTrace")]
-    stack_trace: Option<String>,
+    pub stack_trace: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
