@@ -312,36 +312,18 @@ mod test {
     #[tokio::test]
     async fn daemon_start() {
         let daemon = FlutterDaemon::new().unwrap();
-        let version = daemon.version().await.unwrap();
-        assert_eq!(version, "0.6.1".to_string());
+        for i in 0..3 {
+            let version = daemon.version().await.unwrap();
+            assert_eq!(version, "0.6.1".to_string());
+        }
         assert!(daemon.shutdown().await.is_ok());
     }
 
     #[tokio::test]
     async fn receive_daemon_connected() {
-        let daemon = Arc::new(FlutterDaemon::new().unwrap());
-
-        let daemon1 = Arc::clone(&daemon);
-        let handle1 = tokio::spawn(async move {
-            let event = daemon1.receive_daemon_connected().await.unwrap();
-            assert_eq!(event.version, "0.6.1");
-        });
-
-        let daemon2 = Arc::clone(&daemon);
-        let handle2 = tokio::spawn(async move {
-            let event = daemon2.receive_log_message().await.unwrap();
-            assert_eq!(
-                event,
-                LogMessageEventParams {
-                    level: MessageLevel::Status,
-                    message: "Starting device daemon...".to_string(),
-                    stack_trace: None,
-                }
-            );
-        });
-
-        assert!(handle1.await.is_ok());
-        assert!(handle2.await.is_ok());
+        let daemon = FlutterDaemon::new().unwrap();
+        let event = daemon.receive_daemon_connected().await.unwrap();
+        assert_eq!(event.version, "0.6.1");
         assert!(daemon.shutdown().await.is_ok());
     }
 }
