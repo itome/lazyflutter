@@ -4,97 +4,97 @@ use serde_json::Map;
 use serde_json::Value;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-struct GetSupportedPlatformsParams {
+pub struct GetSupportedPlatformsParams {
     #[serde(rename = "projectRoot")]
-    project_root: String,
+    pub project_root: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-struct LaunchEmulatorParams {
+pub struct LaunchEmulatorParams {
     #[serde(rename = "emulatorId")]
-    emulator_id: String,
+    pub emulator_id: String,
 
     #[serde(rename = "coldBoot")]
-    cold_boot: bool,
+    pub cold_boot: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-struct CreateEmultorParams {
+pub struct CreateEmultorParams {
     #[serde(rename = "name")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    name: Option<String>,
+    pub name: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-struct RestartAppParams {
+pub struct RestartAppParams {
     #[serde(rename = "appId")]
-    app_id: String,
+    pub app_id: String,
 
     #[serde(rename = "fullRestart")]
-    full_restart: bool,
+    pub full_restart: bool,
 
-    pause: bool,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    reason: Option<String>,
+    pub pause: bool,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    debounce: Option<String>,
+    pub reason: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub debounce: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-struct DetachAppParams {
+pub struct DetachAppParams {
     #[serde(rename = "appId")]
-    app_id: String,
+    pub app_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-struct StopAppParams {
+pub struct StopAppParams {
     #[serde(rename = "appId")]
-    app_id: String,
+    pub app_id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-struct CallServiceExtensionParams {
+pub struct CallServiceExtensionParams {
     #[serde(rename = "appId")]
-    app_id: String,
+    pub app_id: String,
 
     #[serde(rename = "methodName")]
-    method_name: String,
+    pub method_name: String,
 
     #[serde(rename = "params")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    params: Option<Map<String, Value>>,
+    pub params: Option<Map<String, Value>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-struct DeviceForwardParams {
+pub struct DeviceForwardParams {
     #[serde(rename = "deviceId")]
-    device_id: String,
+    pub device_id: String,
 
     #[serde(rename = "port")]
-    port: String,
+    pub port: String,
 
     #[serde(rename = "hostPort")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    host_port: Option<String>,
+    pub host_port: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-struct DeviceUnforwardParams {
+pub struct DeviceUnforwardParams {
     #[serde(rename = "deviceId")]
-    device_id: String,
+    pub device_id: String,
 
     #[serde(rename = "port")]
-    port: String,
+    pub port: String,
 
     #[serde(rename = "hostPort")]
-    host_port: String,
+    pub host_port: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(tag = "method")]
-enum FlutterDaemonRequest {
+pub enum FlutterDaemonRequest {
     #[serde(rename = "daemon.version")]
     Version { id: u32 },
 
