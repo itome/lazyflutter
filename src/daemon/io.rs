@@ -8,12 +8,12 @@ pub mod event;
 pub mod request;
 pub mod response;
 
-pub fn parse_event<'a>(s: &'a str) -> Option<FlutterDaemonEvent> {
+pub fn parse_event(s: &str) -> Option<FlutterDaemonEvent> {
     if !(s.starts_with("[{") && s.ends_with("}]")) {
         return None;
     }
     let s = s.trim_start_matches('[').trim_end_matches(']');
-    serde_json::from_str::<FlutterDaemonEvent>(&s).ok()
+    serde_json::from_str::<FlutterDaemonEvent>(s).ok()
 }
 
 pub fn parse_response<'a, T>(s: &'a str, id: u32) -> Option<FlutterDaemonResponse<T>>
@@ -24,7 +24,7 @@ where
         return None;
     }
     let s = s.trim_start_matches('[').trim_end_matches(']');
-    let response = serde_json::from_str::<FlutterDaemonResponse<T>>(&s);
+    let response = serde_json::from_str::<FlutterDaemonResponse<T>>(s);
     if let Ok(response) = response {
         if response.id == id {
             return Some(response);

@@ -210,7 +210,7 @@ impl FlutterDaemon {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_log(&self) -> Result<LogEventParams> {
@@ -219,7 +219,7 @@ impl FlutterDaemon {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_log_message(&self) -> Result<LogMessageEventParams> {
@@ -228,7 +228,7 @@ impl FlutterDaemon {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_show_message(&self) -> Result<ShowMessageEventParams> {
@@ -237,7 +237,7 @@ impl FlutterDaemon {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_device_added(&self) -> Result<Device> {
@@ -246,7 +246,7 @@ impl FlutterDaemon {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_device_removed(&self) -> Result<Device> {
@@ -255,7 +255,7 @@ impl FlutterDaemon {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     async fn request_id(&self) -> u32 {
@@ -283,7 +283,7 @@ impl FlutterDaemon {
                 return Ok(res);
             }
         }
-        return Err(eyre!("Could not receive daemon response"));
+        Err(eyre!("Could not receive daemon response"))
     }
 
     async fn receive_event(&self) -> Result<FlutterDaemonEvent> {
@@ -293,7 +293,7 @@ impl FlutterDaemon {
                 return Ok(res);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 }
 

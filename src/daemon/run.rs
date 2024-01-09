@@ -152,7 +152,7 @@ impl FlutterRun {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_log(&self) -> Result<LogEventParams> {
@@ -161,7 +161,7 @@ impl FlutterRun {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_log_message(&self) -> Result<LogMessageEventParams> {
@@ -170,7 +170,7 @@ impl FlutterRun {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_app_start(&self) -> Result<AppStartEventParams> {
@@ -179,7 +179,7 @@ impl FlutterRun {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_app_started(&self) -> Result<AppStartedEventParams> {
@@ -188,7 +188,7 @@ impl FlutterRun {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_app_debug_port(&self) -> Result<AppDebugPortEventParams> {
@@ -197,7 +197,7 @@ impl FlutterRun {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_app_log(&self) -> Result<AppLogEventParams> {
@@ -206,7 +206,7 @@ impl FlutterRun {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_app_progress(&self) -> Result<AppProgressEventParams> {
@@ -215,7 +215,7 @@ impl FlutterRun {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     pub async fn receive_app_stop(&self) -> Result<AppStopEventParams> {
@@ -224,7 +224,7 @@ impl FlutterRun {
                 return Ok(params);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 
     async fn restart(&self, full_restart: bool) -> Result<RestartAppResult> {
@@ -275,7 +275,7 @@ impl FlutterRun {
                 return Ok(res);
             }
         }
-        return Err(eyre!("Could not receive daemon response"));
+        Err(eyre!("Could not receive daemon response"))
     }
 
     async fn receive_event(&self) -> Result<FlutterDaemonEvent> {
@@ -285,6 +285,6 @@ impl FlutterRun {
                 return Ok(res);
             }
         }
-        return Err(eyre!("Could not receive daemon event"));
+        Err(eyre!("Could not receive daemon event"))
     }
 }
