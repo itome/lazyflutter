@@ -55,10 +55,7 @@ impl FlutterDaemon {
         tokio::spawn(async move {
             let mut lines = BufReader::new(stdout).lines();
             while let Ok(Some(line)) = lines.next_line().await {
-                match _tx.send(line) {
-                    Ok(_) => {}
-                    Err(_) => {}
-                }
+                let _ = _tx.send(line);
             }
         });
 

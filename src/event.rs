@@ -35,20 +35,15 @@ impl EventHandler {
                 tokio::select! {
                   maybe_event = crossterm_event => {
                     match maybe_event {
-                      Some(Ok(evt)) => {
-                        match evt {
-                          crossterm::event::Event::Key(key) => {
+                      Some(Ok(crossterm::event::Event::Key(key))) => {
                             if key.kind == crossterm::event::KeyEventKind::Press {
                               tx.send(Event::Key(key)).unwrap();
                             }
-                          },
-                          _ => {},
-                        }
                       }
                       Some(Err(_)) => {
                         tx.send(Event::Error).unwrap();
                       }
-                      None => {},
+                      _ => {},
                     }
                   },
                   _ = delay => {
@@ -70,5 +65,11 @@ impl EventHandler {
             .recv()
             .await
             .ok_or(color_eyre::eyre::eyre!("Unable to get event"))
+    }
+}
+
+impl Default for EventHandler {
+    fn default() -> Self {
+        EventHandler::new()
     }
 }
