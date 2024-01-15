@@ -28,12 +28,6 @@ impl DevicesComponent {
 impl Component for DevicesComponent {
     fn init(&mut self, area: Rect) -> Result<()> {
         let daemon = self.daemon.clone();
-        tokio::spawn(async move {
-            let _ = daemon.receive_daemon_connected().await;
-            daemon.enable_device().await.unwrap();
-        });
-
-        let daemon = self.daemon.clone();
         let devices = self.devices.clone();
         tokio::spawn(async move {
             while let Ok(device) = daemon.receive_device_added().await {

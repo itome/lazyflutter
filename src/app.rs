@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use color_eyre::eyre::Result;
 use crossterm::event::KeyEvent;
@@ -12,6 +12,7 @@ use crate::{
     config::Config,
     daemon::flutter::FlutterDaemon,
     mode::Mode,
+    session::session_manager::{self, SessionManager},
     tui,
 };
 
@@ -29,7 +30,15 @@ pub struct App {
 impl App {
     pub fn new(tick_rate: f64, frame_rate: f64) -> Result<Self> {
         let daemon = Arc::new(FlutterDaemon::new()?);
-        let home = Home::new(daemon);
+
+        let _daemon = daemon.clone();
+        tokio::spawn(async move {
+            let _ = _daemon.receive_daemon_connected().await;
+            _daemon.enable_device().await.unwrap();
+        });
+
+        let session_manager = Arc::new(Mutex::new(SessionManager::new()));
+        let home = Home::new(daemon, session_manager);
         let config = Config::new()?;
         let mode = Mode::Home;
         Ok(Self {

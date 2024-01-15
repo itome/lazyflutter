@@ -1,4 +1,8 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
 
 use color_eyre::eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent, MouseEvent};
@@ -14,6 +18,7 @@ use crate::{
     action::Action,
     config::{Config, KeyBindings},
     daemon::flutter::FlutterDaemon,
+    session::session_manager::SessionManager,
 };
 
 pub struct Home {
@@ -24,10 +29,10 @@ pub struct Home {
 }
 
 impl Home {
-    pub fn new(daemon: Arc<FlutterDaemon>) -> Self {
+    pub fn new(daemon: Arc<FlutterDaemon>, session_manager: Arc<Mutex<SessionManager>>) -> Self {
         let devices = DevicesComponent::new(daemon.clone());
         let project = ProjectComponent::new(daemon.clone());
-        let apps = AppsComponent::new(daemon.clone());
+        let apps = AppsComponent::new(daemon.clone(), session_manager.clone());
         let devtools = DevToolsComponent::new(daemon.clone());
         Self {
             project,

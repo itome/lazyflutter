@@ -10,6 +10,7 @@ pub mod config;
 pub mod daemon;
 pub mod event;
 pub mod mode;
+pub mod session;
 pub mod tui;
 pub mod utils;
 
