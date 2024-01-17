@@ -62,19 +62,23 @@ impl Component for DevicesComponent {
         let Ok(devices) = self.devices.lock() else {
             return Ok(());
         };
+        let default_color = if self.is_selected {
+            Color::White
+        } else {
+            Color::DarkGray
+        };
 
         let block = Block::default()
             .title("Devices")
             .borders(Borders::ALL)
-            .border_style(if self.is_selected {
-                Style::default()
-            } else {
-                Style::default().fg(Color::DarkGray)
-            });
+            .border_style(Style::default().fg(default_color));
 
         let items: Vec<ListItem> = devices
             .iter()
-            .map(|d| ListItem::new(format!("{} ({})", d.name, d.platform)))
+            .map(|d| {
+                ListItem::new(format!("{} ({})", d.name, d.platform))
+                    .style(Style::default().fg(default_color))
+            })
             .collect();
         let list = List::new(items)
             .style(Style::default().fg(Color::White))

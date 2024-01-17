@@ -28,15 +28,19 @@ impl ProjectComponent {
 
 impl Component for ProjectComponent {
     fn draw(&mut self, f: &mut Frame<'_>, area: Rect) -> Result<()> {
+        let default_color = if self.is_selected {
+            Color::White
+        } else {
+            Color::DarkGray
+        };
+
         let block = Block::default()
             .title("Project")
             .borders(Borders::ALL)
-            .border_style(if self.is_selected {
-                Style::default()
-            } else {
-                Style::default().fg(Color::DarkGray)
-            });
-        let text = Paragraph::new("lazyflutter").block(block);
+            .border_style(Style::default().fg(default_color));
+        let text = Paragraph::new("lazyflutter")
+            .style(Style::default().fg(default_color))
+            .block(block);
         f.render_widget(text, area);
         Ok(())
     }
