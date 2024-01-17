@@ -17,6 +17,7 @@ use super::io::{
         ShowMessageEventParams,
     },
     parse_event, parse_response,
+    platform::Platform,
     request::{
         CreateEmultorParams, DeviceForwardParams, DeviceUnforwardParams, FlutterDaemonRequest,
         GetSupportedPlatformsParams, LaunchEmulatorParams,
@@ -26,7 +27,7 @@ use super::io::{
         DeviceUnforwardResponse, EmulatorCreateResponse, EmulatorLaunchResponse,
         FlutterDaemonResponse, GetDevicesResponse, GetEmulatorsResponse,
         GetSupportedPlatformsResponse, ServeDevToolsResponse, ServeDevToolsResult,
-        ShutdownResponse, VersionResponse,
+        ShutdownResponse, VersionResponse, GetSupportedPlatformsResult,
     },
 };
 
