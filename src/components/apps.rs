@@ -15,6 +15,7 @@ pub struct AppsComponent {
     session_manager: Arc<Mutex<SessionManager>>,
     daemon: Arc<FlutterDaemon>,
     devices: Arc<Mutex<Vec<Device>>>,
+    is_selected: bool,
 }
 
 impl AppsComponent {
@@ -23,7 +24,12 @@ impl AppsComponent {
             session_manager,
             daemon,
             devices: Arc::new(Mutex::new(vec![])),
+            is_selected: false,
         }
+    }
+
+    pub fn set_selected(&mut self, is_selected: bool) {
+        self.is_selected = is_selected;
     }
 }
 
@@ -57,10 +63,23 @@ impl Component for AppsComponent {
     }
 
     fn draw(&mut self, f: &mut Frame<'_>, area: Rect) -> Result<()> {
-        let block = Block::default().title("Apps").borders(Borders::ALL);
-        let paragraph = Paragraph::new("Run new app").block(block);
+        let block = Block::default()
+            .title("Apps")
+            .borders(Borders::ALL)
+            .border_style(if self.is_selected {
+                Style::default()
+            } else {
+                Style::default().fg(Color::DarkGray)
+            });
 
-        f.render_widget(paragraph, area);
+        let items = ["Run new app"];
+        let list = List::new(items)
+            .block(block)
+            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+            .highlight_symbol(">>")
+            .repeat_highlight_symbol(true);
+
+        f.render_stateful_widget(list, area, &mut self.list_state);
         Ok(())
     }
 }

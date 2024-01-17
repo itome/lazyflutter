@@ -21,24 +21,35 @@ use crate::{
     session::session_manager::SessionManager,
 };
 
+#[derive(PartialEq)]
+enum Tab {
+    Project,
+    Apps,
+    Devices,
+}
+
 pub struct Home {
     project: ProjectComponent,
     apps: AppsComponent,
     devices: DevicesComponent,
     devtools: DevToolsComponent,
+
+    selected_tab: Tab,
 }
 
 impl Home {
     pub fn new(daemon: Arc<FlutterDaemon>, session_manager: Arc<Mutex<SessionManager>>) -> Self {
         let devices = DevicesComponent::new(daemon.clone());
         let project = ProjectComponent::new(daemon.clone());
-        let apps = AppsComponent::new(daemon.clone(), session_manager.clone());
+        let mut apps = AppsComponent::new(daemon.clone(), session_manager.clone());
+        apps.set_selected(true);
         let devtools = DevToolsComponent::new(daemon.clone());
         Self {
             project,
             devices,
             apps,
             devtools,
+            selected_tab: Tab::Apps,
         }
     }
 }
@@ -69,10 +80,36 @@ impl Component for Home {
     }
 
     fn handle_key_events(&mut self, key: KeyEvent) -> Result<Option<Action>> {
-        self.project.handle_key_events(key)?;
-        self.apps.handle_key_events(key)?;
-        self.devices.handle_key_events(key)?;
-        self.devtools.handle_key_events(key)?;
+        if key.code == KeyCode::Left {
+            self.selected_tab = match self.selected_tab {
+                Tab::Project => Tab::Project,
+                Tab::Apps => Tab::Project,
+                Tab::Devices => Tab::Apps,
+            };
+            self.project.set_selected(self.selected_tab == Tab::Project);
+            self.apps.set_selected(self.selected_tab == Tab::Apps);
+            self.devices.set_selected(self.selected_tab == Tab::Devices);
+            return Ok(None);
+        } else if key.code == KeyCode::Right {
+            self.selected_tab = match self.selected_tab {
+                Tab::Project => Tab::Apps,
+                Tab::Apps => Tab::Devices,
+                Tab::Devices => Tab::Devices,
+            };
+            self.project.set_selected(self.selected_tab == Tab::Project);
+            self.apps.set_selected(self.selected_tab == Tab::Apps);
+            self.devices.set_selected(self.selected_tab == Tab::Devices);
+            return Ok(None);
+        }
+        if let Tab::Project = self.selected_tab {
+            return self.project.handle_key_events(key);
+        }
+        if let Tab::Apps = self.selected_tab {
+            return self.apps.handle_key_events(key);
+        }
+        if let Tab::Devices = self.selected_tab {
+            return self.devices.handle_key_events(key);
+        }
         Ok(None)
     }
 

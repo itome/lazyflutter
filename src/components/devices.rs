@@ -12,7 +12,7 @@ use super::Component;
 
 pub struct DevicesComponent {
     daemon: Arc<FlutterDaemon>,
-
+    is_selected: bool,
     devices: Arc<Mutex<Vec<Device>>>,
 }
 
@@ -21,7 +21,12 @@ impl DevicesComponent {
         Self {
             daemon,
             devices: Arc::new(Mutex::new(vec![])),
+            is_selected: false,
         }
+    }
+
+    pub fn set_selected(&mut self, is_selected: bool) {
+        self.is_selected = is_selected;
     }
 }
 
@@ -58,7 +63,15 @@ impl Component for DevicesComponent {
             return Ok(());
         };
 
-        let block = Block::default().title("Devices").borders(Borders::ALL);
+        let block = Block::default()
+            .title("Devices")
+            .borders(Borders::ALL)
+            .border_style(if self.is_selected {
+                Style::default()
+            } else {
+                Style::default().fg(Color::DarkGray)
+            });
+
         let items: Vec<ListItem> = devices
             .iter()
             .map(|d| ListItem::new(format!("{} ({})", d.name, d.platform)))
