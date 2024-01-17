@@ -70,6 +70,7 @@ impl Component for DevicesComponent {
 
         let block = Block::default()
             .title("Devices")
+            .padding(Padding::horizontal(1))
             .borders(Borders::ALL)
             .border_style(Style::default().fg(default_color));
 

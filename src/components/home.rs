@@ -82,7 +82,7 @@ impl Component for Home {
     fn handle_key_events(&mut self, key: KeyEvent) -> Result<Option<Action>> {
         if key.code == KeyCode::Left {
             self.selected_tab = match self.selected_tab {
-                Tab::Project => Tab::Project,
+                Tab::Project => Tab::Devices,
                 Tab::Apps => Tab::Project,
                 Tab::Devices => Tab::Apps,
             };
@@ -94,7 +94,7 @@ impl Component for Home {
             self.selected_tab = match self.selected_tab {
                 Tab::Project => Tab::Apps,
                 Tab::Apps => Tab::Devices,
-                Tab::Devices => Tab::Devices,
+                Tab::Devices => Tab::Project,
             };
             self.project.set_selected(self.selected_tab == Tab::Project);
             self.apps.set_selected(self.selected_tab == Tab::Apps);

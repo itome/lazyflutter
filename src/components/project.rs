@@ -36,6 +36,7 @@ impl Component for ProjectComponent {
 
         let block = Block::default()
             .title("Project")
+            .padding(Padding::horizontal(1))
             .borders(Borders::ALL)
             .border_style(Style::default().fg(default_color));
         let text = Paragraph::new("lazyflutter")
