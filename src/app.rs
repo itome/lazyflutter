@@ -28,7 +28,7 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(tick_rate: f64, frame_rate: f64) -> Result<Self> {
+    pub fn new(project_root: Option<String>) -> Result<Self> {
         let daemon = Arc::new(FlutterDaemon::new()?);
 
         let _daemon = daemon.clone();
@@ -37,13 +37,13 @@ impl App {
             _daemon.enable_device().await.unwrap();
         });
 
-        let session_manager = Arc::new(Mutex::new(SessionManager::new()));
+        let session_manager = Arc::new(Mutex::new(SessionManager::new(project_root)));
         let home = Home::new(daemon, session_manager);
         let config = Config::new()?;
         let mode = Mode::Home;
         Ok(Self {
-            tick_rate,
-            frame_rate,
+            tick_rate: 4.0,
+            frame_rate: 60.0,
             components: vec![Box::new(home)],
             should_quit: false,
             should_suspend: false,

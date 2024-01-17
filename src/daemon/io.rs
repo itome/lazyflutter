@@ -5,7 +5,6 @@ use self::{event::FlutterDaemonEvent, response::FlutterDaemonResponse};
 pub mod device;
 pub mod emulator;
 pub mod event;
-pub mod platform;
 pub mod request;
 pub mod response;
 

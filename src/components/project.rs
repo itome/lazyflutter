@@ -3,10 +3,7 @@ use std::sync::{Arc, Mutex};
 use ratatui::prelude::Rect;
 use ratatui::{prelude::*, widgets::*};
 
-use crate::{
-    daemon::{flutter::FlutterDaemon, io::platform::Platform},
-    tui::Frame,
-};
+use crate::{daemon::flutter::FlutterDaemon, tui::Frame};
 use color_eyre::eyre::Result;
 
 use super::Component;
@@ -14,14 +11,22 @@ use super::Component;
 pub struct ProjectComponent {
     daemon: Arc<FlutterDaemon>,
     platforms: Arc<Mutex<Vec<String>>>,
+    project_root: String,
+    is_selected: bool,
 }
 
 impl ProjectComponent {
-    pub fn new(daemon: Arc<FlutterDaemon>) -> Self {
+    pub fn new(daemon: Arc<FlutterDaemon>, project_root: String) -> Self {
         Self {
             daemon,
             platforms: Arc::new(Mutex::new(vec![])),
+            project_root: project_root,
+            is_selected: false,
         }
+    }
+
+    pub fn set_selected(&mut self, is_selected: bool) {
+        self.is_selected = is_selected;
     }
 }
 
@@ -29,13 +34,9 @@ impl Component for ProjectComponent {
     fn init(&mut self, area: Rect) -> Result<()> {
         let daemon = self.daemon.clone();
         let platforms = self.platforms.clone();
+        let project_root = self.project_root.clone();
         tokio::spawn(async move {
-            while let Ok(mut _platforms) = daemon
-                .get_supported_platforms(String::from(
-                    "/Path/Your/Flutter/Projects/",
-                ))
-                .await
-            {
+            while let Ok(mut _platforms) = daemon.get_supported_platforms(project_root.clone()).await {
                 match platforms.lock() {
                     Ok(mut platforms) => {
                         platforms.clear();
@@ -52,7 +53,18 @@ impl Component for ProjectComponent {
         let Ok(platforms) = self.platforms.lock() else {
             return Ok(());
         };
-        let block = Block::default().title("Project").borders(Borders::ALL);
+
+        let default_color = if self.is_selected {
+            Color::White
+        } else {
+            Color::DarkGray
+        };
+
+        let block = Block::default()
+            .title("Project")
+            .padding(Padding::horizontal(1))
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(default_color));
         let ps: Vec<String> = platforms.iter().map(|p| p.clone()).collect();
         let mut items: Vec<ListItem> = vec![];
         items.push(ListItem::new(format!("lazyflutter ({})", ps.join(","))));
