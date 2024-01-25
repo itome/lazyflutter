@@ -1,9 +1,11 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use ratatui::{prelude::*, widgets::*};
+use tokio::sync::Mutex;
 
 use crate::{
     daemon::{flutter::FlutterDaemon, io::device::Device},
+    store::{action::Action, state::State, Store},
     tui::Frame,
 };
 use color_eyre::eyre::Result;
@@ -13,14 +15,12 @@ use super::Component;
 pub struct DevicesComponent {
     daemon: Arc<FlutterDaemon>,
     is_selected: bool,
-    devices: Arc<Mutex<Vec<Device>>>,
 }
 
 impl DevicesComponent {
     pub fn new(daemon: Arc<FlutterDaemon>) -> Self {
         Self {
             daemon,
-            devices: Arc::new(Mutex::new(vec![])),
             is_selected: false,
         }
     }
@@ -31,37 +31,25 @@ impl DevicesComponent {
 }
 
 impl Component for DevicesComponent {
-    fn init(&mut self, area: Rect) -> Result<()> {
+    fn init(&mut self, area: Rect, store: Arc<Mutex<Store>>) -> Result<()> {
         let daemon = self.daemon.clone();
-        let devices = self.devices.clone();
         tokio::spawn(async move {
-            while let Ok(device) = daemon.receive_device_added().await {
-                let Ok(mut devices) = devices.lock() else {
-                    return;
-                };
-                devices.push(device);
-            }
-        });
-
-        let daemon = self.daemon.clone();
-        let devices = self.devices.clone();
-        tokio::spawn(async move {
-            while let Ok(device) = daemon.receive_device_removed().await {
-                let Ok(mut devices) = devices.lock() else {
-                    return;
-                };
-                if let Some(index) = devices.iter().position(|d| d.id == device.id) {
-                    devices.remove(index);
+            loop {
+                tokio::select! {
+                    Ok(device) = daemon.receive_device_added() => {
+                        store.lock().await.dispatch(Action::AddDevice { device }).await;
+                    },
+                    Ok(device) = daemon.receive_device_removed() => {
+                        store.lock().await.dispatch(Action::RemoveDevice { device }).await;
+                    },
                 }
             }
         });
         Ok(())
     }
 
-    fn draw(&mut self, f: &mut Frame<'_>, area: Rect) -> Result<()> {
-        let Ok(devices) = self.devices.lock() else {
-            return Ok(());
-        };
+    fn draw(&mut self, f: &mut Frame<'_>, area: Rect, state: &State) -> Result<()> {
+        let devices = state.devices.clone();
         let default_color = if self.is_selected {
             Color::White
         } else {

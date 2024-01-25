@@ -3,6 +3,7 @@ use std::sync::Arc;
 use ratatui::prelude::Rect;
 use ratatui::{prelude::*, widgets::*};
 
+use crate::store::state::State;
 use crate::{daemon::flutter::FlutterDaemon, tui::Frame};
 use color_eyre::eyre::Result;
 
@@ -27,7 +28,7 @@ impl ProjectComponent {
 }
 
 impl Component for ProjectComponent {
-    fn draw(&mut self, f: &mut Frame<'_>, area: Rect) -> Result<()> {
+    fn draw(&mut self, f: &mut Frame<'_>, area: Rect, _: &State) -> Result<()> {
         let default_color = if self.is_selected {
             Color::White
         } else {

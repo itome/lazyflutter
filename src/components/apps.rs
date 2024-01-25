@@ -1,12 +1,17 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{prelude::*, widgets::*};
+use tokio::sync::Mutex;
 
 use crate::{
     action::Action,
     daemon::{self, flutter::FlutterDaemon, io::device::Device},
-    session::session_manager::{self, SessionManager},
+    session::{
+        session::Session,
+        session_manager::{self, SessionManager},
+    },
+    store::{state::State, Store},
     tui::Frame,
 };
 use color_eyre::eyre::Result;
@@ -38,33 +43,33 @@ impl AppsComponent {
     }
 
     fn next(&mut self) {
-        let i = match self.list_state.selected() {
-            Some(i) => {
-                let sessions = &self.session_manager.lock().unwrap().sessions;
-                if i >= sessions.len() {
-                    0
-                } else {
-                    i + 1
-                }
-            }
-            None => 0,
-        };
-        self.list_state.select(Some(i));
+        // let i = match self.list_state.selected() {
+        //     Some(i) => {
+        //         let sessions = &self.session_manager.lock().unwrap().sessions;
+        //         if i >= sessions.len() {
+        //             0
+        //         } else {
+        //             i + 1
+        //         }
+        //     }
+        //     None => 0,
+        // };
+        // self.list_state.select(Some(i));
     }
 
     fn previous(&mut self) {
-        let i = match self.list_state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    let sessions = &self.session_manager.lock().unwrap().sessions;
-                    sessions.len()
-                } else {
-                    i - 1
-                }
-            }
-            None => 0,
-        };
-        self.list_state.select(Some(i));
+        // let i = match self.list_state.selected() {
+        //     Some(i) => {
+        //         if i == 0 {
+        //             let sessions = &self.session_manager.lock().unwrap().sessions;
+        //             sessions.len()
+        //         } else {
+        //             i - 1
+        //         }
+        //     }
+        //     None => 0,
+        // };
+        // self.list_state.select(Some(i));
     }
 
     fn unselect(&mut self) {
@@ -72,15 +77,19 @@ impl AppsComponent {
     }
 
     fn run_new_app(&mut self) -> Result<()> {
-        if let Ok(mut session_manager) = self.session_manager.lock() {
-            session_manager.run_new_app()?;
-        }
+        // if let Ok(mut session_manager) = self.session_manager.lock() {
+        //     session_manager.run_new_app()?;
+        // }
         Ok(())
     }
 }
 
 impl Component for AppsComponent {
-    fn handle_key_events(&mut self, key: KeyEvent) -> Result<Option<Action>> {
+    fn handle_key_events(
+        &mut self,
+        key: KeyEvent,
+        store: Arc<Mutex<Store>>,
+    ) -> Result<Option<Action>> {
         match key.code {
             KeyCode::Char('n') => {
                 self.run_new_app()?;
@@ -96,35 +105,7 @@ impl Component for AppsComponent {
         Ok(None)
     }
 
-    fn init(&mut self, area: Rect) -> Result<()> {
-        let daemon = self.daemon.clone();
-        let devices = self.devices.clone();
-        tokio::spawn(async move {
-            while let Ok(device) = daemon.receive_device_added().await {
-                let Ok(mut devices) = devices.lock() else {
-                    return;
-                };
-                devices.push(device);
-            }
-        });
-
-        let daemon = self.daemon.clone();
-        let devices = self.devices.clone();
-        tokio::spawn(async move {
-            while let Ok(device) = daemon.receive_device_removed().await {
-                let Ok(mut devices) = devices.lock() else {
-                    return;
-                };
-                if let Some(index) = devices.iter().position(|d| d.id == device.id) {
-                    devices.remove(index);
-                }
-            }
-        });
-
-        Ok(())
-    }
-
-    fn draw(&mut self, f: &mut Frame<'_>, area: Rect) -> Result<()> {
+    fn draw(&mut self, f: &mut Frame<'_>, area: Rect, state: &State) -> Result<()> {
         let default_color = if self.is_selected {
             Color::White
         } else {
@@ -141,7 +122,8 @@ impl Component for AppsComponent {
             .borders(Borders::ALL)
             .border_style(Style::default().fg(default_color));
 
-        let sessions = &self.session_manager.lock().unwrap().sessions;
+        // let sessions = &self.session_manager.lock().unwrap().sessions;
+        let sessions: Vec<Session> = vec![];
         let mut items = sessions
             .iter()
             .enumerate()

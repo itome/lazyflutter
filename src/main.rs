@@ -11,6 +11,7 @@ pub mod daemon;
 pub mod event;
 pub mod mode;
 pub mod session;
+pub mod store;
 pub mod tui;
 pub mod utils;
 

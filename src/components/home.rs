@@ -1,14 +1,10 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-    time::Duration,
-};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use color_eyre::eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent, MouseEvent};
 use ratatui::{prelude::*, widgets::*};
 use serde::{Deserialize, Serialize};
-use tokio::sync::mpsc::UnboundedSender;
+use tokio::sync::{mpsc::UnboundedSender, Mutex};
 
 use super::{
     apps::AppsComponent, devices::DevicesComponent, devtools::DevToolsComponent,
@@ -19,6 +15,7 @@ use crate::{
     config::{Config, KeyBindings},
     daemon::flutter::FlutterDaemon,
     session::session_manager::SessionManager,
+    store::{state::State, Store},
 };
 
 #[derive(PartialEq)]
@@ -55,19 +52,11 @@ impl Home {
 }
 
 impl Component for Home {
-    fn init(&mut self, area: Rect) -> Result<()> {
-        self.project.init(area)?;
-        self.apps.init(area)?;
-        self.devices.init(area)?;
-        self.devtools.init(area)?;
-        Ok(())
-    }
-
-    fn register_action_handler(&mut self, tx: UnboundedSender<Action>) -> Result<()> {
-        self.project.register_action_handler(tx.clone())?;
-        self.apps.register_action_handler(tx.clone())?;
-        self.devices.register_action_handler(tx.clone())?;
-        self.devtools.register_action_handler(tx.clone())?;
+    fn init(&mut self, area: Rect, store: Arc<Mutex<Store>>) -> Result<()> {
+        self.project.init(area, store.clone())?;
+        self.apps.init(area, store.clone())?;
+        self.devices.init(area, store.clone())?;
+        self.devtools.init(area, store.clone())?;
         Ok(())
     }
 
@@ -79,7 +68,11 @@ impl Component for Home {
         Ok(())
     }
 
-    fn handle_key_events(&mut self, key: KeyEvent) -> Result<Option<Action>> {
+    fn handle_key_events(
+        &mut self,
+        key: KeyEvent,
+        store: Arc<Mutex<Store>>,
+    ) -> Result<Option<Action>> {
         if key.code == KeyCode::Left {
             self.selected_tab = match self.selected_tab {
                 Tab::Project => Tab::Devices,
@@ -102,34 +95,30 @@ impl Component for Home {
             return Ok(None);
         }
         if let Tab::Project = self.selected_tab {
-            return self.project.handle_key_events(key);
+            return self.project.handle_key_events(key, store);
         }
         if let Tab::Apps = self.selected_tab {
-            return self.apps.handle_key_events(key);
+            return self.apps.handle_key_events(key, store);
         }
         if let Tab::Devices = self.selected_tab {
-            return self.devices.handle_key_events(key);
+            return self.devices.handle_key_events(key, store);
         }
         Ok(None)
     }
 
-    fn handle_mouse_events(&mut self, mouse: MouseEvent) -> Result<Option<Action>> {
-        self.project.handle_mouse_events(mouse)?;
-        self.apps.handle_mouse_events(mouse)?;
-        self.devices.handle_mouse_events(mouse)?;
-        self.devtools.handle_mouse_events(mouse)?;
+    fn handle_mouse_events(
+        &mut self,
+        mouse: MouseEvent,
+        store: Arc<Mutex<Store>>,
+    ) -> Result<Option<Action>> {
+        self.project.handle_mouse_events(mouse, store.clone())?;
+        self.apps.handle_mouse_events(mouse, store.clone())?;
+        self.devices.handle_mouse_events(mouse, store.clone())?;
+        self.devtools.handle_mouse_events(mouse, store.clone())?;
         Ok(None)
     }
 
-    fn update(&mut self, action: Action) -> Result<Option<Action>> {
-        self.project.update(action.clone())?;
-        self.apps.update(action.clone())?;
-        self.devices.update(action.clone())?;
-        self.devtools.update(action.clone())?;
-        Ok(None)
-    }
-
-    fn draw(&mut self, f: &mut Frame<'_>, area: Rect) -> Result<()> {
+    fn draw(&mut self, f: &mut Frame<'_>, area: Rect, state: &State) -> Result<()> {
         let layout = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(25), Constraint::Percentage(75)])
@@ -143,10 +132,10 @@ impl Component for Home {
             ])
             .split(layout[0]);
 
-        self.project.draw(f, tab_layout[0])?;
-        self.apps.draw(f, tab_layout[1])?;
-        self.devices.draw(f, tab_layout[2])?;
-        self.devtools.draw(f, layout[1])?;
+        self.project.draw(f, tab_layout[0], state)?;
+        self.apps.draw(f, tab_layout[1], state)?;
+        self.devices.draw(f, tab_layout[2], state)?;
+        self.devtools.draw(f, layout[1], state)?;
         Ok(())
     }
 }

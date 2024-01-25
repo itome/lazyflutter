@@ -1,10 +1,10 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use color_eyre::eyre::Result;
 use crossterm::event::KeyEvent;
 use ratatui::prelude::Rect;
 use serde::{Deserialize, Serialize};
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, Mutex};
 
 use crate::{
     action::Action,
@@ -13,11 +13,13 @@ use crate::{
     daemon::flutter::FlutterDaemon,
     mode::Mode,
     session::session_manager::{self, SessionManager},
+    store::Store,
     tui,
 };
 
 pub struct App {
     pub config: Config,
+    pub store: Arc<Mutex<Store>>,
     pub tick_rate: f64,
     pub frame_rate: f64,
     pub components: Vec<Box<dyn Component>>,
@@ -47,6 +49,7 @@ impl App {
             components: vec![Box::new(home)],
             should_quit: false,
             should_suspend: false,
+            store: Arc::new(Mutex::new(Store::new())),
             config,
             mode,
             last_tick_key_events: Vec::new(),
@@ -63,15 +66,11 @@ impl App {
         tui.enter()?;
 
         for component in self.components.iter_mut() {
-            component.register_action_handler(action_tx.clone())?;
-        }
-
-        for component in self.components.iter_mut() {
             component.register_config_handler(self.config.clone())?;
         }
 
         for component in self.components.iter_mut() {
-            component.init(tui.size()?)?;
+            component.init(tui.size()?, self.store.clone())?;
         }
 
         loop {
@@ -102,7 +101,9 @@ impl App {
                     _ => {}
                 }
                 for component in self.components.iter_mut() {
-                    if let Some(action) = component.handle_events(Some(e.clone()))? {
+                    if let Some(action) =
+                        component.handle_events(Some(e.clone()), self.store.clone())?
+                    {
                         action_tx.send(action)?;
                     }
                 }
@@ -121,9 +122,11 @@ impl App {
                     Action::Resume => self.should_suspend = false,
                     Action::Resize(w, h) => {
                         tui.resize(Rect::new(0, 0, w, h))?;
+                        let store = self.store.lock().await;
+                        let state = store.state.lock().await;
                         tui.draw(|f| {
                             for component in self.components.iter_mut() {
-                                let r = component.draw(f, f.size());
+                                let r = component.draw(f, f.size(), &*state);
                                 if let Err(e) = r {
                                     action_tx
                                         .send(Action::Error(format!("Failed to draw: {:?}", e)))
@@ -133,9 +136,11 @@ impl App {
                         })?;
                     }
                     Action::Render => {
+                        let store = self.store.lock().await;
+                        let state = store.state.lock().await;
                         tui.draw(|f| {
                             for component in self.components.iter_mut() {
-                                let r = component.draw(f, f.size());
+                                let r = component.draw(f, f.size(), &*state);
                                 if let Err(e) = r {
                                     action_tx
                                         .send(Action::Error(format!("Failed to draw: {:?}", e)))
@@ -145,11 +150,6 @@ impl App {
                         })?;
                     }
                     _ => {}
-                }
-                for component in self.components.iter_mut() {
-                    if let Some(action) = component.update(action.clone())? {
-                        action_tx.send(action)?
-                    };
                 }
             }
             if self.should_suspend {
